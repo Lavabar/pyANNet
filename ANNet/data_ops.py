@@ -40,7 +40,7 @@ class DataLoader:
     def __init__(self, x_data, y_data, minibatch_size):
         self.minibatch_size = minibatch_size
 
-        self.X = np.reshape(x_data, (x_data.shape[0], 28*28)) / 255
+        self.X = np.reshape(x_data, (x_data.shape[0], -1)) / x_data.max()
         self.Y = to_categorical(y_data)
 
         self.dataset_size = x_data.shape[0]

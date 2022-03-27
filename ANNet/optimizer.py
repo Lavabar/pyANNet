@@ -1,39 +1,53 @@
 import numpy as np
-import copy
 
 
 class Optimizer:
-    def __init__(self, grads_structure, learning_rate):
+    def __init__(self, learning_rate):
         self.learning_rate = learning_rate
-        self.epsilon = 1.0e-4
 
-        self.running_Eg2 = grads_structure
-        self.gamma = 0.7
-
-        self.beta1 = 0.3
-        self.beta2 = 0.7
-        self.running_ms = copy.deepcopy(grads_structure)
-        self.running_vs = copy.deepcopy(grads_structure)
-
-    def sgd_optimizer(self, gt):
+    def get_deltas(self, gt):
         return self.learning_rate * gt
 
-    def update_Eg2(self, gt, k):
-        self.running_Eg2[k] = self.gamma * self.running_Eg2[k] + (1.0 - self.gamma) * np.square(gt)
 
-    def update_ms(self, gt, k):
-        self.running_ms[k] = self.beta1 * self.running_ms[k] + (1.0 - self.beta1) * gt
+class RMSprop(Optimizer):
 
-    def update_vs(self, gt, k):
-        self.running_vs[k] = self.beta2 * self.running_vs[k] + (1.0 - self.beta2) * np.square(gt)
+    def __init__(self, grads_structure, learning_rate):
+        super().__init__(learning_rate)
+        self.epsilon = 1.0e-4
 
-    def rmsprop_optimizer(self, gt, k):
-        self.update_Eg2(gt, k)
-        return self.learning_rate * gt / np.sqrt(self.running_Eg2[k] + self.epsilon)
+        self.running_Eg2 = np.zeros(grads_structure)
+        self.gamma = 0.7
 
-    def adam_optimizer(self, gt, k, t):
-        self.update_ms(gt, k)
-        self.update_vs(gt, k)
-        m_hat = self.running_ms[k] / (1.0 - np.power(self.beta1, t))
-        v_hat = self.running_vs[k] / (1.0 - np.power(self.beta2, t))
+    def update_Eg2(self, gt):
+        self.running_Eg2 = self.gamma * self.running_Eg2 + (1.0 - self.gamma) * np.square(gt)
+
+    def get_deltas(self, gt):
+        self.update_Eg2(gt)
+        return self.learning_rate * gt / np.sqrt(self.running_Eg2 + self.epsilon)
+
+
+class Adam(Optimizer):
+
+    def __init__(self, grads_structure, learning_rate):
+        super().__init__(learning_rate)
+        self.epsilon = 1.0e-4
+        self.beta1 = 0.3
+        self.beta2 = 0.7
+        self.running_ms = np.zeros(grads_structure)
+        self.running_vs = np.zeros(grads_structure)
+
+        self.t = 0
+
+    def update_ms(self, gt):
+        self.running_ms = self.beta1 * self.running_ms + (1.0 - self.beta1) * gt
+
+    def update_vs(self, gt):
+        self.running_vs = self.beta2 * self.running_vs + (1.0 - self.beta2) * np.square(gt)
+
+    def get_deltas(self, gt):
+        self.t += 1
+        self.update_ms(gt)
+        self.update_vs(gt)
+        m_hat = self.running_ms / (1.0 - np.power(self.beta1, self.t))
+        v_hat = self.running_vs / (1.0 - np.power(self.beta2, self.t))
         return self.learning_rate * m_hat / np.sqrt(v_hat + self.epsilon)
