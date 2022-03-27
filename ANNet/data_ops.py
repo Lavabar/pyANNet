@@ -37,8 +37,15 @@ def unison_shuffled_copies(a, b):
 
 class DataLoader:
 
-    def __init__(self):
-        pass
+    def __init__(self, x_data, y_data, minibatch_size):
+        self.minibatch_size = minibatch_size
+
+        self.X = np.reshape(x_data, (x_data.shape[0], 28*28)) / 255
+        self.Y = to_categorical(y_data)
+
+        self.dataset_size = x_data.shape[0]
 
     def get_batch(self):
-        pass
+        self.X, self.Y = unison_shuffled_copies(self.X, self.Y)
+        for i in range(0, len(self.X) - self.minibatch_size - 1, self.minibatch_size):
+            yield self.X[i:i + self.minibatch_size], self.Y[i:i + self.minibatch_size]

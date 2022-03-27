@@ -4,7 +4,7 @@ import numpy as np
 from tqdm import trange, tqdm
 from .functions import cross_entropy_loss, softplus_forward, softplus_backward, softmax_forward
 from .optimizer import Optimizer
-from .data_ops import to_categorical, unison_shuffled_copies
+from .data_ops import to_categorical, unison_shuffled_copies, DataLoader
 
 np.random.seed(0)
 
@@ -15,9 +15,6 @@ class Model:
 
         self.input_size = 28 * 28
 
-        self.X = np.reshape(x_data, (x_data.shape[0], self.input_size)) / 255
-        self.Y = to_categorical(y_data)
-
         self.hidden_layers = 2
         self.output_size = 10
         self.n_neurons = (self.input_size, 128, 64, self.output_size)
@@ -25,6 +22,8 @@ class Model:
         self.minibatch_size = 128
         self.epochs = 3
         self.learning_rate = 0.01
+
+        self.data_loader = DataLoader(x_data, y_data, self.minibatch_size)
 
         self.weights = []
         for i in range(self.hidden_layers + 1):
@@ -44,11 +43,6 @@ class Model:
         self.output_activation = softmax_forward
         self.W_optimizer = Optimizer(copy.deepcopy(self.dweights), self.learning_rate)
         self.b_optimizer = Optimizer(copy.deepcopy(self.dbiases), self.learning_rate)
-
-    def get_batch(self):
-        self.X, self.Y = unison_shuffled_copies(self.X, self.Y)
-        for i in range(0, len(self.X) - self.minibatch_size - 1, self.minibatch_size):
-            yield self.X[i:i + self.minibatch_size], self.Y[i:i + self.minibatch_size]
 
     def fpass(self, input_data):
         self.io_values = [np.zeros(n) for n in self.n_neurons]
@@ -86,8 +80,8 @@ class Model:
         t = 1
         plot_losses = []
         for i in range(self.epochs):
-            batch_generator = self.get_batch()
-            progress_bar = tqdm(batch_generator, total=self.X.shape[0] // self.minibatch_size)
+            batch_generator = self.data_loader.get_batch()
+            progress_bar = tqdm(batch_generator, total=self.data_loader.dataset_size // self.minibatch_size)
             for x_batch, y_batch in progress_bar:
                 losses = 0.0
                 for j in range(len(x_batch)):
