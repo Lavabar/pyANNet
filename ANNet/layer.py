@@ -77,8 +77,8 @@ class DenseLayer(Layer):
         self.dbiases = np.zeros(self.n_neurons)
 
     def update_grads(self):
-        self.weights -= self.w_optimizer.get_deltas(self.dweights / (self.batch_serial + 1))
-        self.biases -= self.b_optimizer.get_deltas(self.dbiases / (self.batch_serial + 1))
+        self.weights -= self.w_optimizer.get_deltas(self.dweights / self.batch_serial)
+        self.biases -= self.b_optimizer.get_deltas(self.dbiases / self.batch_serial)
         self.batch_serial = 0
         self.clear_grads()
 
