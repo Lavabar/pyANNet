@@ -13,7 +13,7 @@ class RMSprop(Optimizer):
 
     def __init__(self, grads_structure, learning_rate):
         super().__init__(learning_rate)
-        self.epsilon = 1.0e-4
+        self.epsilon = 1e-07
 
         self.running_Eg2 = np.zeros(grads_structure)
         self.gamma = 0.7
@@ -30,9 +30,9 @@ class Adam(Optimizer):
 
     def __init__(self, grads_structure, learning_rate):
         super().__init__(learning_rate)
-        self.epsilon = 1.0e-4
-        self.beta1 = 0.3
-        self.beta2 = 0.7
+        self.epsilon = 1e-07
+        self.beta1 = 0.9
+        self.beta2 = 0.999
         self.running_ms = np.zeros(grads_structure)
         self.running_vs = np.zeros(grads_structure)
 

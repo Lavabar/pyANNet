@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.signal import convolve2d
 
 
 def softplus_forward(x):
@@ -25,15 +26,23 @@ def cross_entropy_loss(output, target):
 
 
 def convolution2d(x, kernel, padding, stride):
-    kernel_size = kernel.shape[0]
-    res_size = tuple((np.array(x.shape) - kernel_size + 2 * padding) + 1)
+    # kernel_size = kernel.shape[0]
+    # res_size = tuple((np.array(x.shape) - kernel_size + 2 * padding) + 1)
     new_x = np.pad(x, padding, constant_values=0)
-    res = np.zeros(res_size)
-    kernel = kernel.flatten()
-    for i in range(0, res_size[0], stride):
-        for j in range(0, res_size[1], stride):
-            res[i, j] = np.dot(new_x[i:i+kernel_size, j:j+kernel_size].flatten(), kernel)
+    # res = np.zeros(res_size)
+    # for i in range(0, res_size[0], stride):
+    #     for j in range(0, res_size[1], stride):
+    #         res[i, j] = (kernel * new_x[i:i+kernel_size, j:j+kernel_size]).sum()
+    res = convolve2d(new_x, kernel, 'valid')
     return res
+
+
+def relu_forward(x):
+    return x * (x > 0)
+
+
+def relu_backward(x):
+    return (x > 0) * 1
 
 
 if __name__ == '__main__':
