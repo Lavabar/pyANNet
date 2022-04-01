@@ -1,5 +1,7 @@
 import numpy as np
 
+np.random.seed(0)
+
 
 def to_categorical(y, num_classes=None, dtype='float32'):
     """Converts a class vector (integers) to binary class matrix.
