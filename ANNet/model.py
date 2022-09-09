@@ -3,14 +3,14 @@ import numpy as np
 from tqdm import trange, tqdm
 from .functions import cross_entropy_loss
 from .data_ops import DataLoader
-from .layer import DenseLayer
+from .layer import DenseLayer, Conv2dLayer, MaxPooling
 
 
 class Model:
 
     def __init__(self, x_data, y_data):
 
-        self.input_size = 28 * 28
+        self.input_size = (28, 28)
         self.output_size = 10
 
         self.minibatch_size = 128
@@ -18,11 +18,21 @@ class Model:
         self.learning_rate = 0.01
 
         self.layers = [
-            DenseLayer(n_neurons=128, input_size=self.input_size, activation="softplus", optimizer="Adam",
+            Conv2dLayer(n_kernels=6, kernel_size=3, padding=(3 // 2), input_size=self.input_size, activation="softplus",
+                        optimizer="Adam", learning_rate=self.learning_rate),
+            Conv2dLayer(n_kernels=6, kernel_size=3, padding=(3 // 2), input_size=(6, 28, 28), activation="softplus",
+                        optimizer="Adam", learning_rate=self.learning_rate),
+            MaxPooling(input_size=(6, 28, 28), filter_size=2, stride=2),
+            Conv2dLayer(n_kernels=16, kernel_size=3, padding=0, input_size=(6, 14, 14), activation="softplus",
+                        optimizer="Adam", learning_rate=self.learning_rate),
+            Conv2dLayer(n_kernels=16, kernel_size=3, padding=0, input_size=(16, 12, 12), activation="softplus",
+                        optimizer="Adam", learning_rate=self.learning_rate),
+            MaxPooling(input_size=(16, 10, 10), filter_size=2, stride=2),
+            DenseLayer(n_neurons=120, input_size=400, activation="softplus", optimizer="Adam",
                        learning_rate=self.learning_rate),
-            DenseLayer(n_neurons=64, input_size=128, activation="softplus", optimizer="Adam",
+            DenseLayer(n_neurons=84, input_size=120, activation="softplus", optimizer="Adam",
                        learning_rate=self.learning_rate),
-            DenseLayer(n_neurons=self.output_size, input_size=64, activation="softmax", optimizer="Adam",
+            DenseLayer(n_neurons=self.output_size, input_size=84, activation="softmax", optimizer="Adam",
                        learning_rate=self.learning_rate)
         ]
         self.data_loader = DataLoader(x_data, y_data, self.minibatch_size)
@@ -60,7 +70,8 @@ class Model:
         return plot_losses
 
     def evaluate(self, x_test, y_test):
-        x_test = np.reshape(x_test, (x_test.shape[0], self.input_size)) / 255
+        #x_test = np.reshape(x_test, (x_test.shape[0], self.input_size)) / 255
+        x_test = x_test / 255
         res = np.zeros(x_test.shape[0])
         for i in trange(len(x_test)):
             res[i] += np.argmax(self.fpass(x_test[i])) == y_test[i]
