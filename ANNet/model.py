@@ -42,7 +42,6 @@ class Model:
             io = layer.bpass(io)
 
     def train(self):
-        t = 1
         plot_losses = []
         for i in range(self.epochs):
             batch_generator = self.data_loader.get_batch()
@@ -55,10 +54,9 @@ class Model:
                     self.bpass(out - y_batch[j])
                     losses += loss
                     plot_losses.append(loss)
-                progress_bar.set_description(f"Epoch: {i}, CE av loss: {losses / self.minibatch_size}")
+                progress_bar.set_description(f"Epoch: {i}, av loss: {losses / self.minibatch_size}")
                 for layer in self.layers:
                     layer.update_grads()
-            t += 1
         return plot_losses
 
     def evaluate(self, x_test, y_test):
