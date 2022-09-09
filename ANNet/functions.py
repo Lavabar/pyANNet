@@ -12,6 +12,10 @@ def softmax_forward(x):
     return expos / expos.sum(axis=0, keepdims=True)
 
 
+def softmax_backward(x):
+    return np.ones(x.shape[0])
+
+
 def softplus_backward(x):
     return 1 / (1 + np.exp(-1 * x))
 
