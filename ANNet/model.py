@@ -15,17 +15,14 @@ class Model:
 
         self.minibatch_size = 128
         self.epochs = 3
-        self.learning_rate = 0.01
+        self.learning_rate = 0.001
 
         self.layers = [
-            Conv2dLayer(n_kernels=6, kernel_size=3, padding=(3 // 2), input_size=self.input_size, activation="softplus",
-                        optimizer="Adam", learning_rate=self.learning_rate),
-            Conv2dLayer(n_kernels=6, kernel_size=3, padding=(3 // 2), input_size=(6, 28, 28), activation="softplus",
+            # CNN LeNet
+            Conv2dLayer(n_kernels=6, kernel_size=5, padding=(5 // 2), input_size=self.input_size, activation="softplus",
                         optimizer="Adam", learning_rate=self.learning_rate),
             MaxPooling(input_size=(6, 28, 28), filter_size=2, stride=2),
-            Conv2dLayer(n_kernels=16, kernel_size=3, padding=0, input_size=(6, 14, 14), activation="softplus",
-                        optimizer="Adam", learning_rate=self.learning_rate),
-            Conv2dLayer(n_kernels=16, kernel_size=3, padding=0, input_size=(16, 12, 12), activation="softplus",
+            Conv2dLayer(n_kernels=16, kernel_size=5, padding=0, input_size=(6, 14, 14), activation="softplus",
                         optimizer="Adam", learning_rate=self.learning_rate),
             MaxPooling(input_size=(16, 10, 10), filter_size=2, stride=2),
             DenseLayer(n_neurons=120, input_size=400, activation="softplus", optimizer="Adam",
@@ -34,6 +31,13 @@ class Model:
                        learning_rate=self.learning_rate),
             DenseLayer(n_neurons=self.output_size, input_size=84, activation="softmax", optimizer="Adam",
                        learning_rate=self.learning_rate)
+            # FcNN 128-64
+            # DenseLayer(n_neurons=128, input_size=28*28, activation="relu", optimizer="Adam",
+            #            learning_rate=self.learning_rate),
+            # DenseLayer(n_neurons=64, input_size=128, activation="relu", optimizer="Adam",
+            #            learning_rate=self.learning_rate),
+            # DenseLayer(n_neurons=self.output_size, input_size=64, activation="softmax", optimizer="Adam",
+            #            learning_rate=self.learning_rate)
         ]
         self.data_loader = DataLoader(x_data, y_data, self.minibatch_size)
         self.cost_function = cross_entropy_loss

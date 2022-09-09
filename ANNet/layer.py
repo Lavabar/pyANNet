@@ -1,5 +1,5 @@
 import numpy as np
-from .functions import softplus_forward, softplus_backward, softmax_forward, softmax_backward, convolution2d
+from .functions import softplus_forward, softplus_backward, softmax_forward, softmax_backward, convolution2d, relu_backward, relu_forward
 from .optimizer import Optimizer, RMSprop, Adam
 
 np.random.seed(0)
@@ -38,10 +38,13 @@ class DenseLayer(Layer):
         elif activation == 'softmax':
             self.forward_activation = softmax_forward
             self.backward_activation = softmax_backward
+        elif activation == 'relu':
+            self.forward_activation = relu_forward
+            self.backward_activation = relu_backward
 
-        self.weights = np.random.rand(self.n_neurons, self.input_size) - 0.5
+        self.weights = np.random.rand(self.n_neurons, self.input_size) - 0.5 #* np.sqrt(2.0 / np.prod(self.input_size))
         self.dweights = np.zeros((self.n_neurons, self.input_size))
-        self.biases = np.zeros(self.n_neurons)
+        self.biases = np.random.rand(self.n_neurons) - 0.5 #* np.sqrt(2.0 / np.prod(self.input_size))
         self.dbiases = np.zeros(self.n_neurons)
         self.Zs = np.zeros(self.n_neurons)
 
@@ -62,8 +65,7 @@ class DenseLayer(Layer):
         self.batch_serial = 0
 
     def fpass(self, input_data):
-        if len(input_data.shape) > 1:
-            input_data = input_data.flatten()
+        input_data = np.reshape(input_data, self.input_size)
         self.input_data = input_data
         for n in range(self.n_neurons):
             self.Zs[n] = np.dot(input_data, self.weights[n]) + self.biases[n]
@@ -103,11 +105,13 @@ class Conv2dLayer(Layer):
         if activation == 'softplus':
             self.forward_activation = softplus_forward
             self.backward_activation = softplus_backward
-        # TODO: Add more activations
+        elif activation == 'relu':
+            self.forward_activation = relu_forward
+            self.backward_activation = relu_backward
 
-        self.weights = np.random.rand(self.n_kernels, self.kernel_size, self.kernel_size) - 0.5
+        self.weights = np.random.rand(self.n_kernels, self.kernel_size, self.kernel_size) - 0.5 #* np.sqrt(2.0 / np.prod(self.input_size))
         self.dweights = np.zeros((self.n_kernels, self.kernel_size, self.kernel_size))
-        self.biases = 0.0
+        self.biases = np.random.rand(1) - 0.5 #np.sqrt(2.0 / np.prod(self.input_size))
         self.dbiases = 0.0
 
         self.fmap_size = tuple((np.array(self.input_size[-2:]) - self.kernel_size + 2 * self.padding) + 1)
@@ -212,8 +216,7 @@ class MaxPooling(Layer):
         return res
 
     def bpass(self, douts):
-        if len(douts.shape) == 1:
-            douts = douts.reshape(self.res_size)
+        douts = douts.reshape(self.res_size)
         for n in range(self.input_size[0]):
             k1 = 0
             for i in range(0, self.input_size[1], self.stride):
